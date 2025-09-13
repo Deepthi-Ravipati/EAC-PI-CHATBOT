@@ -13,6 +13,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./feedback.db")
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and "+psycopg" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
 # SQLite needs this when using SQLAlchemy 2.x in multi-threaded servers
@@ -158,6 +165,7 @@ def export_feedback(s: SASession = Depends(db)):
     for r in s.query(FeedbackResponse).order_by(FeedbackResponse.ts.asc()).all():
         w.writerow([r.session_id, r.q_key, r.answer_numeric if r.answer_numeric is not None else "", (r.answer_text or "").replace("\n"," "), r.ts.isoformat()])
     return buf.getvalue()
+
 
 
 
