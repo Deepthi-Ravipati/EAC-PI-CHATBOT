@@ -1,5 +1,5 @@
 // Point this to your API if it's not localhost:8000
-const API_BASE = 'https://eac-pi-chatbot.onrender.com';
+const API_BASE = 'https://pi-chatbot.onrender.com';
 
 let SESSION_ID = null;
 let QUESTIONS = [];
@@ -112,6 +112,7 @@ window.endFeedbackSession = async function () {
         body: JSON.stringify({ session_id: SESSION_ID })
     });
 };
+
 
 
 
