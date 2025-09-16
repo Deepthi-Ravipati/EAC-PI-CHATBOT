@@ -1,30 +1,31 @@
-﻿import os
+import os
 from uuid import uuid4
 from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Session as SASession
 from dotenv import load_dotenv
 
+# --- Env ---
 load_dotenv()
-
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./feedback.db")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+
+# Force SQLAlchemy to use psycopg v3 if we're on Postgres (Render)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
 elif DATABASE_URL.startswith("postgresql://") and "+psycopg" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
-
-# SQLite needs this when using SQLAlchemy 2.x in multi-threaded servers
+# SQLite needs this arg; Postgres does not
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
+# --- DB setup ---
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 Base = declarative_base()
@@ -69,9 +70,8 @@ def db() -> SASession:
     finally:
         d.close()
 
+# --- App & CORS ---
 app = FastAPI(title="Feedback Chatbot API")
-
-# CORS
 allow_origins = [o.strip() for o in CORS_ORIGINS.split(",")] if CORS_ORIGINS else ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -81,7 +81,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-# Pydantic models
+# --- Schemas ---
 class StartSessionReq(BaseModel):
     consented: bool = False
     research_version: Optional[str] = None
@@ -106,6 +106,11 @@ class FeedbackAnswerReq(BaseModel):
     q_key: str
     answer_numeric: Optional[int] = None
     answer_text: Optional[str] = None
+
+# --- Endpoints ---
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
 
 @app.post("/session/start", response_model=StartSessionResp)
 def start_session(req: StartSessionReq, s: SASession = Depends(db)):
@@ -157,14 +162,42 @@ def feedback_answer(req: FeedbackAnswerReq, s: SASession = Depends(db)):
     return {"ok": True}
 
 @app.get("/feedback/export.csv")
-def export_feedback(s: SASession = Depends(db)):
+def export_feedback_csv(s: SASession = Depends(db)):
     import csv, io
     buf = io.StringIO()
-    w = csv.writer(buf)
+    # UTF-8 BOM so Excel on Windows opens cleanly
+    buf.write('\ufeff')
+    w = csv.writer(buf, lineterminator='\n')
     w.writerow(["session_id","q_key","answer_numeric","answer_text","ts"])
     for r in s.query(FeedbackResponse).order_by(FeedbackResponse.ts.asc()).all():
-        w.writerow([r.session_id, r.q_key, r.answer_numeric if r.answer_numeric is not None else "", (r.answer_text or "").replace("\n"," "), r.ts.isoformat()])
-    return buf.getvalue()
+        w.writerow([
+            r.session_id,
+            r.q_key,
+            "" if r.answer_numeric is None else r.answer_numeric,
+            (r.answer_text or "").replace("\n"," "),
+            r.ts.isoformat()
+        ])
+    buf.seek(0)
+    headers = {
+        "Content-Disposition": f'attachment; filename="feedback_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.csv"'
+    }
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv; charset=utf-8", headers=headers)
+
+@app.get("/feedback/export.json")
+def export_feedback_json(s: SASession = Depends(db)):
+    rows = []
+    for r in s.query(FeedbackResponse).order_by(FeedbackResponse.ts.asc()).all():
+        rows.append({
+            "session_id": r.session_id,
+            "q_key": r.q_key,
+            "answer_numeric": r.answer_numeric,
+            "answer_text": r.answer_text,
+            "ts": r.ts.isoformat()
+        })
+    return JSONResponse(rows)
+
+
+
 
 
 
