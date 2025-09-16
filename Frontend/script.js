@@ -1,6 +1,5 @@
 // Point this to your API if it's not localhost:8000
 const API_BASE = 'https://pi-chatbot.onrender.com';
-
 let SESSION_ID = null;
 let QUESTIONS = [];
 let idx = 0;
@@ -42,7 +41,8 @@ async function ensureSession(consented) {
     });
     const data = await res.json();
     SESSION_ID = data.session_id;
-    // Put session_id in the URL (nice for debugging or deep-linking)
+
+    // Put session_id in the URL for easy deep-linking / debugging
     url.searchParams.set('session_id', SESSION_ID);
     history.replaceState(null, '', url.toString());
 }
@@ -104,7 +104,7 @@ async function saveAnswer(q_key, answer_numeric, answer_text) {
     });
 }
 
-// Optional: call this after redirecting back to your main app
+// Optional: call this from your main app after redirecting back
 window.endFeedbackSession = async function () {
     await fetch(API_BASE + '/session/end', {
         method: 'POST',
@@ -112,6 +112,11 @@ window.endFeedbackSession = async function () {
         body: JSON.stringify({ session_id: SESSION_ID })
     });
 };
+
+
+
+
+
 
 
 
