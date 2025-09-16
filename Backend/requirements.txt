@@ -4,7 +4,5 @@ SQLAlchemy==2.0.35
 pydantic==2.9.1
 python-dotenv==1.0.1
 
-# Postgres driver (psycopg v3; works great on Python 3.13)
-psycopg[binary]==3.2.1
-
-
+# Postgres driver (psycopg v3, good on Python 3.13)
+psycopg[binary]==3.2.10
