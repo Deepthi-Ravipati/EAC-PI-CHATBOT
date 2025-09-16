@@ -1,107 +1,72 @@
-:root {
-    color-scheme: light;
-}
-
-* {
-    box-sizing: border-box;
-}
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
 
 body {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: #fdfdfd; /* very light gray, not pure white */
-    color: #111; /* near-black text */
-    margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #fdfdfd; /* very light gray, not pure white */
+  color: #111;         /* near-black text */
+  margin: 0;
 }
 
 .container {
-    max-width: 720px;
-    margin: 56px auto;
-    background: #fff;
-    padding: 24px 28px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    border: 1px solid #ddd;
+  max-width: 720px;
+  margin: 56px auto;
+  background: #fff;
+  padding: 24px 28px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
 }
 
-h2 {
-    margin: 0 0 8px;
-    color: #000;
-}
+h2 { margin: 0 0 8px; color: #000; }
+.hint { color: #333; margin-top: 0; font-size: 15px; }
 
-.hint {
-    color: #333;
-    margin-top: 0;
-    font-size: 15px;
-}
-
-.row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 12px 0;
-}
+.row { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
 
 button {
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: #0066cc; /* blue buttons */
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #0066cc; /* blue buttons */
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
 }
-
-    button:hover {
-        background: #004c99;
-    }
-
-    button[disabled] {
-        opacity: .5;
-        cursor: default;
-    }
+button:hover { background: #004c99; }
+button[disabled] { opacity: .5; cursor: default; }
 
 .likert {
-    padding: 14px 18px;
-    border-radius: 8px;
-    border: 2px solid #333;
-    background: #fafafa;
-    cursor: pointer;
-    min-width: 48px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: #111;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: #fafafa;
+  cursor: pointer;
+  min-width: 48px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #111;
 }
-
-    .likert:hover {
-        background: #e6f0ff;
-        border-color: #0066cc;
-        color: #0066cc;
-    }
+.likert:hover {
+  background: #e6f0ff;
+  border-color: #0066cc;
+  color: #0066cc;
+}
 
 textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 2px solid #333;
-    background: #fff;
-    color: #111;
-    resize: vertical;
-    font-size: 15px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: #fff;
+  color: #111;
+  resize: vertical;
+  font-size: 15px;
 }
 
-#progress {
-    color: #444;
-    font-size: 14px;
-    margin-top: 8px;
-}
+#progress { color: #444; font-size: 14px; margin-top: 8px; }
+.q { font-size: 18px; margin-top: 6px; color: #000; font-weight: 500; }
 
-.q {
-    font-size: 18px;
-    margin-top: 6px;
-    color: #000;
-    font-weight: 500;
-}
 
 
