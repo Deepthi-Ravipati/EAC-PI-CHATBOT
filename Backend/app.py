@@ -195,6 +195,56 @@ def export_feedback_json(s: SASession = Depends(db)):
             "ts": r.ts.isoformat()
         })
     return JSONResponse(rows)
+    @app.get("/feedback/export_wide.csv")
+def export_feedback_wide(s: SASession = Depends(db)):
+    import csv, io
+
+    # collect all responses
+    responses = s.query(FeedbackResponse).order_by(
+        FeedbackResponse.session_id, FeedbackResponse.ts
+    ).all()
+
+    # group by session_id
+    data = {}
+    for r in responses:
+        if r.session_id not in data:
+            data[r.session_id] = {"session_id": r.session_id}
+        if r.answer_numeric is not None:
+            data[r.session_id][r.q_key] = r.answer_numeric
+        if r.answer_text:
+            data[r.session_id][r.q_key] = r.answer_text
+
+    # define fixed column order
+    cols = [
+        "session_id",
+        "believability",
+        "realism",
+        "design_opt",
+        "ease_use",
+        "trust",
+        "task_success",
+        "free_text",
+    ]
+
+    buf = io.StringIO()
+    buf.write("\ufeff")  # BOM for Excel
+    w = csv.DictWriter(buf, fieldnames=cols, lineterminator="\n")
+    w.writeheader()
+    for row in data.values():
+        w.writerow(row)
+
+    buf.seek(0)
+    from fastapi.responses import StreamingResponse
+    from datetime import datetime
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="feedback_wide_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.csv"'
+        },
+    )
+
+
 
 
 
