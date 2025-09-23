@@ -112,6 +112,22 @@ window.endFeedbackSession = async function () {
         body: JSON.stringify({ session_id: SESSION_ID })
     });
 };
+// point to your backend CSV
+const CSV_URL = 'https://pi-chatbot.onrender.com/feedback/export.csv';
+
+// when feedback is done, set the link
+function showDownloadLink() {
+  const link = document.getElementById('downloadCsv');
+  if (link) link.href = CSV_URL;
+}
+
+// modify your code where you mark "done" to also call this
+// e.g., in renderQ(), when idx >= QUESTIONS.length:
+qPane.hidden = true;
+donePane.hidden = false;
+showDownloadLink();
+
+
 
 
 
